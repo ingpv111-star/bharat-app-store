@@ -14,11 +14,9 @@ body{
   text-align:center;
 }
 
-h1{margin-top:30px;}
-
-input{
+input,select{
   padding:10px;
-  margin:8px;
+  margin:6px;
   border-radius:8px;
   border:none;
 }
@@ -36,7 +34,7 @@ button{
   display:flex;
   flex-wrap:wrap;
   justify-content:center;
-  margin-top:30px;
+  margin-top:20px;
 }
 
 .card{
@@ -53,17 +51,17 @@ button{
   transform:scale(1.05);
 }
 
-img{
-  width:80px;
-}
-
 .install-btn{
   background:#00ff99;
   margin-top:8px;
 }
 
-.rating{
-  margin-top:8px;
+.search-box{
+  margin-top:20px;
+}
+
+.voice-btn{
+  background:#ff9800;
 }
 </style>
 </head>
@@ -78,6 +76,17 @@ img{
 <input id="img" placeholder="Image URL">
 <br>
 <button onclick="addApp()">Upload</button>
+
+<div class="search-box">
+  <input id="searchInput" placeholder="Search App...">
+  <button onclick="startVoiceSearch()" class="voice-btn">🎤</button>
+  <select id="categoryFilter" onchange="filterApps()">
+    <option value="all">All Categories</option>
+    <option value="Finance">Finance</option>
+    <option value="Game">Game</option>
+    <option value="Social">Social</option>
+  </select>
+</div>
 
 <div class="apps" id="apps"></div>
 
@@ -108,26 +117,32 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const container = document.getElementById("apps");
 
+let allApps = [];
+
 async function loadApps(){
   container.innerHTML="";
   const snapshot = await getDocs(collection(db,"apps"));
-  
+  allApps = [];
   snapshot.forEach((docSnap)=>{
     const data = docSnap.data();
-    const id = docSnap.id;
+    data.id = docSnap.id;
+    allApps.push(data);
+  });
+  displayApps(allApps);
+}
 
+function displayApps(appList){
+  container.innerHTML="";
+  appList.forEach((data)=>{
     container.innerHTML += `
       <div class="card">
-        <img src="${data.image}">
+        <img src="${data.image}" width="80">
         <h3>${data.name}</h3>
         <p>${data.developer}</p>
         <p>${data.category}</p>
         <p>Installs: ${data.installs || 0}</p>
-        <button class="install-btn" onclick="installApp('${id}')">Install</button>
-        <div class="rating">
-          ⭐ ${data.rating || 5}
-          <button onclick="rateApp('${id}',5)">5⭐</button>
-        </div>
+        <button class="install-btn" onclick="installApp('${data.id}')">Install</button>
+        <p>⭐ ${data.rating || 5}</p>
       </div>
     `;
   });
@@ -159,12 +174,36 @@ window.installApp = async function(id){
   loadApps();
 };
 
-window.rateApp = async function(id,value){
-  const ref = doc(db,"apps",id);
-  await updateDoc(ref,{
-    rating:value
-  });
-  loadApps();
+window.filterApps = function(){
+  const searchText = document.getElementById("searchInput").value.toLowerCase();
+  const selectedCategory = document.getElementById("categoryFilter").value;
+
+  let filtered = allApps.filter(app =>
+    app.name.toLowerCase().includes(searchText)
+  );
+
+  if(selectedCategory !== "all"){
+    filtered = filtered.filter(app =>
+      app.category === selectedCategory
+    );
+  }
+
+  displayApps(filtered);
+};
+
+document.getElementById("searchInput").addEventListener("input", filterApps);
+
+// 🎤 Voice Search
+window.startVoiceSearch = function(){
+  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+  recognition.lang = "en-US";
+  recognition.start();
+
+  recognition.onresult = function(event){
+    const voiceText = event.results[0][0].transcript;
+    document.getElementById("searchInput").value = voiceText;
+    filterApps();
+  };
 };
 
 loadApps();
