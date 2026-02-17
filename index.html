@@ -1,191 +1,44 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bharat Super App Hub</title>
-
-<style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:linear-gradient(135deg,#141e30,#243b55);
-  color:white;
-  text-align:center;
-}
-
-button{
-  padding:8px 15px;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
-  font-weight:bold;
-  margin:5px;
-}
-
-.login-btn{ background:#4285F4; color:white; }
-.logout-btn{ background:red; color:white; }
-.install-btn{ background:#00ff99; }
-
-.section{
-  margin-top:30px;
-}
-
-.apps{
-  display:flex;
-  flex-wrap:wrap;
-  justify-content:center;
-}
-
-.card{
-  background:rgba(255,255,255,0.1);
-  padding:15px;
-  margin:10px;
-  border-radius:12px;
-  width:200px;
-}
-</style>
+  <title>Test Payment</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body>
+<body style="text-align:center; font-family:Arial; margin-top:100px;">
 
-<h1>🚀 Bharat Super App Hub</h1>
+<h2>Razorpay Test Payment</h2>
 
-<div id="authSection">
-  <button class="login-btn" onclick="login()">Login with Google</button>
-</div>
+<button id="payBtn" style="
+padding:12px 25px;
+background:green;
+color:white;
+border:none;
+border-radius:8px;
+font-size:16px;
+cursor:pointer;">
+Pay ₹500
+</button>
 
-<p id="userInfo"></p>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
-<div class="section">
-  <h2>All Apps</h2>
-  <div class="apps" id="apps"></div>
-</div>
+<script>
+document.getElementById("payBtn").onclick = function () {
 
-<div class="section">
-  <h2>📦 My Apps</h2>
-  <div class="apps" id="myApps"></div>
-</div>
+  var options = {
+    key: "rzp_test_SHHD34IXs9hUPc",  // 👈 Yaha apni TEST Key ID paste karo
+    amount: 50000,
+    currency: "INR",
+    name: "Bharat App Store",
+    description: "Test Transaction",
+    handler: function (response) {
+      alert("Payment Successful ✅");
+    }
+  };
 
-<script type="module">
+  var rzp = new Razorpay(options);
+  rzp.open();
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-import { 
-  getFirestore, 
-  collection, 
-  getDocs, 
-  updateDoc, 
-  doc, 
-  increment,
-  setDoc
-} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
-
-import { 
-  getAuth, 
-  signInWithPopup, 
-  GoogleAuthProvider,
-  onAuthStateChanged,
-  signOut
-} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
-
-const firebaseConfig = {
-  apiKey: "rzp_test_SHHD34IXs9hUPc"
-  authDomain: "bharat-app-store-8a633.firebaseapp.com",
-  projectId: "bharat-app-store-8a633",
-  storageBucket: "bharat-app-store-8a633.firebasestorage.app",
-  messagingSenderId: "884921246902",
-  appId: "1:884921246902:web:31166c0581aeeb3ebd7217",
 };
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-const provider = new GoogleAuthProvider();
-
-const container = document.getElementById("apps");
-const myAppsContainer = document.getElementById("myApps");
-
-let currentUser = null;
-
-window.login = async function(){
-  await signInWithPopup(auth, provider);
-};
-
-window.logout = async function(){
-  await signOut(auth);
-};
-
-onAuthStateChanged(auth, (user)=>{
-  if(user){
-    currentUser = user;
-    document.getElementById("userInfo").innerHTML = `👤 ${user.displayName}`;
-    document.getElementById("authSection").innerHTML =
-      `<button class="logout-btn" onclick="logout()">Logout</button>`;
-    loadMyApps();
-  } else {
-    currentUser = null;
-    document.getElementById("userInfo").innerHTML = "";
-    document.getElementById("authSection").innerHTML =
-      `<button class="login-btn" onclick="login()">Login with Google</button>`;
-    myAppsContainer.innerHTML="";
-  }
-});
-
-async function loadApps(){
-  container.innerHTML="";
-  const snapshot = await getDocs(collection(db,"apps"));
-  snapshot.forEach((docSnap)=>{
-    const data = docSnap.data();
-    container.innerHTML += `
-      <div class="card">
-        <img src="${data.image}" width="70">
-        <h3>${data.name}</h3>
-        <p>${data.developer}</p>
-        <p>Installs: ${data.installs || 0}</p>
-        <button class="install-btn" onclick="installApp('${docSnap.id}','${data.name}','${data.image}')">Install</button>
-      </div>
-    `;
-  });
-}
-
-window.installApp = async function(id,name,image){
-  if(!currentUser){
-    alert("Login required!");
-    return;
-  }
-
-  const ref = doc(db,"apps",id);
-  await updateDoc(ref,{ installs: increment(1) });
-
-  const userInstallRef = doc(db,"users",currentUser.uid,"installs",id);
-  await setDoc(userInstallRef,{
-    name:name,
-    image:image,
-    installedAt:new Date()
-  });
-
-  loadMyApps();
-  loadApps();
-};
-
-async function loadMyApps(){
-  if(!currentUser) return;
-
-  myAppsContainer.innerHTML="";
-  const snapshot = await getDocs(collection(db,"users",currentUser.uid,"installs"));
-
-  snapshot.forEach((docSnap)=>{
-    const data = docSnap.data();
-    myAppsContainer.innerHTML += `
-      <div class="card">
-        <img src="${data.image}" width="60">
-        <h3>${data.name}</h3>
-      </div>
-    `;
-  });
-}
-
-loadApps();
-
 </script>
 
 </body>
