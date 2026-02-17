@@ -1,42 +1,93 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bharat Super App Hub</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bharat Super App Hub</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header class="hero">
   <h1>🌌 Bharat Super App Hub</h1>
   <p>India's Next Generation App Marketplace</p>
-  <div class="search-box">
-    <input type="text" id="searchInput" placeholder="Search apps..." onkeyup="searchApps()">
-  </div>
 </header>
 
-<section class="categories">
-  <button onclick="filterCategory('All')">All</button>
-  <button onclick="filterCategory('AI')">AI</button>
-  <button onclick="filterCategory('Games')">Games</button>
-  <button onclick="filterCategory('Tools')">Tools</button>
-  <button onclick="filterCategory('Education')">Education</button>
-</section>
-
-<section id="appsContainer" class="apps-grid"></section>
-
-<button class="floating-btn" onclick="toggleForm()">+</button>
-
-<div id="uploadForm" class="form-popup">
-  <h3>Upload Your App</h3>
+<section class="upload">
+  <h2>Add New App</h2>
   <input type="text" id="appName" placeholder="App Name">
   <input type="text" id="appDev" placeholder="Developer Name">
   <input type="text" id="appCategory" placeholder="Category">
   <input type="text" id="appImage" placeholder="Image URL">
-  <button onclick="addApp()">Submit</button>
-</div>
+  <button onclick="addApp()">Upload App</button>
+</section>
 
-<script src="script.js"></script>
+<section>
+  <h2>All Apps</h2>
+  <div id="appsContainer" class="apps-grid"></div>
+</section>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyChGwSmE4D-ZmvoaBfAQJVzye4WBdbg4bc",
+  authDomain: "bharat-app-store-8a633.firebaseapp.com",
+  projectId: "bharat-app-store-8a633",
+  storageBucket: "bharat-app-store-8a633.firebasestorage.app",
+  messagingSenderId: "884921246902",
+  appId: "1:884921246902:web:31166c0581aeeb3ebd7217",
+  measurementId: "G-NK1RVQ4FCM"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const container = document.getElementById("appsContainer");
+
+async function loadApps() {
+  container.innerHTML = "";
+  const querySnapshot = await getDocs(collection(db, "apps"));
+  querySnapshot.forEach((doc) => {
+    const data = doc.data();
+    container.innerHTML += `
+      <div class="card">
+        <img src="${data.image}" width="80">
+        <h3>${data.name}</h3>
+        <p>${data.developer}</p>
+        <p>${data.category}</p>
+      </div>
+    `;
+  });
+}
+
+window.addApp = async function() {
+  const name = document.getElementById("appName").value;
+  const dev = document.getElementById("appDev").value;
+  const cat = document.getElementById("appCategory").value;
+  const img = document.getElementById("appImage").value;
+
+  if(!name || !dev || !cat || !img){
+    alert("Fill all fields");
+    return;
+  }
+
+  await addDoc(collection(db, "apps"), {
+    name: name,
+    developer: dev,
+    category: cat,
+    image: img
+  });
+
+  alert("App Added Successfully 🚀");
+  loadApps();
+};
+
+loadApps();
+
+</script>
+
 </body>
 </html>
