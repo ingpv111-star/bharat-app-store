@@ -14,21 +14,18 @@ body{
   text-align:center;
 }
 
-input,select{
-  padding:10px;
-  margin:6px;
-  border-radius:8px;
-  border:none;
-}
-
 button{
   padding:8px 15px;
   border:none;
   border-radius:8px;
   cursor:pointer;
-  background:#00c6ff;
   font-weight:bold;
+  margin:5px;
 }
+
+.login-btn{ background:#4285F4; color:white; }
+.logout-btn{ background:red; color:white; }
+.install-btn{ background:#00ff99; }
 
 .apps{
   display:flex;
@@ -43,25 +40,6 @@ button{
   margin:15px;
   border-radius:15px;
   width:220px;
-  backdrop-filter:blur(10px);
-  transition:0.3s;
-}
-
-.card:hover{
-  transform:scale(1.05);
-}
-
-.install-btn{
-  background:#00ff99;
-  margin-top:8px;
-}
-
-.search-box{
-  margin-top:20px;
-}
-
-.voice-btn{
-  background:#ff9800;
 }
 </style>
 </head>
@@ -69,39 +47,27 @@ button{
 
 <h1>🚀 Bharat Super App Hub</h1>
 
-<h2>Add App</h2>
-<input id="name" placeholder="App Name">
-<input id="dev" placeholder="Developer">
-<input id="cat" placeholder="Category">
-<input id="img" placeholder="Image URL">
-<br>
-<button onclick="addApp()">Upload</button>
-
-<div class="search-box">
-  <input id="searchInput" placeholder="Search App...">
-  <button onclick="startVoiceSearch()" class="voice-btn">🎤</button>
-  <select id="categoryFilter" onchange="filterApps()">
-    <option value="all">All Categories</option>
-    <option value="Finance">Finance</option>
-    <option value="Game">Game</option>
-    <option value="Social">Social</option>
-  </select>
+<div id="authSection">
+  <button class="login-btn" onclick="login()">Login with Google</button>
 </div>
+
+<p id="userInfo"></p>
 
 <div class="apps" id="apps"></div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getFirestore, collection, getDocs, updateDoc, doc, increment } 
+from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
 import { 
-  getFirestore, 
-  collection, 
-  addDoc, 
-  getDocs, 
-  updateDoc,
-  doc,
-  increment
-} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+  getAuth, 
+  signInWithPopup, 
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyChGwSmE4D-ZmvoaBfAQJVzye4WBdbg4bc",
@@ -110,100 +76,68 @@ const firebaseConfig = {
   storageBucket: "bharat-app-store-8a633.firebasestorage.app",
   messagingSenderId: "884921246902",
   appId: "1:884921246902:web:31166c0581aeeb3ebd7217",
-  measurementId: "G-NK1RVQ4FCM"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const container = document.getElementById("apps");
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
 
-let allApps = [];
+const container = document.getElementById("apps");
+const authSection = document.getElementById("authSection");
+const userInfo = document.getElementById("userInfo");
+
+let currentUser = null;
+
+window.login = async function(){
+  await signInWithPopup(auth, provider);
+};
+
+window.logout = async function(){
+  await signOut(auth);
+};
+
+onAuthStateChanged(auth, (user)=>{
+  if(user){
+    currentUser = user;
+    userInfo.innerHTML = `👤 ${user.displayName}`;
+    authSection.innerHTML = `<button class="logout-btn" onclick="logout()">Logout</button>`;
+  } else {
+    currentUser = null;
+    userInfo.innerHTML = "";
+    authSection.innerHTML = `<button class="login-btn" onclick="login()">Login with Google</button>`;
+  }
+});
 
 async function loadApps(){
   container.innerHTML="";
   const snapshot = await getDocs(collection(db,"apps"));
-  allApps = [];
   snapshot.forEach((docSnap)=>{
     const data = docSnap.data();
-    data.id = docSnap.id;
-    allApps.push(data);
-  });
-  displayApps(allApps);
-}
-
-function displayApps(appList){
-  container.innerHTML="";
-  appList.forEach((data)=>{
     container.innerHTML += `
       <div class="card">
         <img src="${data.image}" width="80">
         <h3>${data.name}</h3>
         <p>${data.developer}</p>
-        <p>${data.category}</p>
         <p>Installs: ${data.installs || 0}</p>
-        <button class="install-btn" onclick="installApp('${data.id}')">Install</button>
-        <p>⭐ ${data.rating || 5}</p>
+        <button class="install-btn" onclick="installApp('${docSnap.id}')">Install</button>
       </div>
     `;
   });
 }
 
-window.addApp = async function(){
-  const name = document.getElementById("name").value;
-  const dev = document.getElementById("dev").value;
-  const cat = document.getElementById("cat").value;
-  const img = document.getElementById("img").value;
-
-  await addDoc(collection(db,"apps"),{
-    name,
-    developer:dev,
-    category:cat,
-    image:img,
-    installs:0,
-    rating:5
-  });
-
-  loadApps();
-};
-
 window.installApp = async function(id){
+  if(!currentUser){
+    alert("Please login first!");
+    return;
+  }
+
   const ref = doc(db,"apps",id);
   await updateDoc(ref,{
     installs: increment(1)
   });
+
   loadApps();
-};
-
-window.filterApps = function(){
-  const searchText = document.getElementById("searchInput").value.toLowerCase();
-  const selectedCategory = document.getElementById("categoryFilter").value;
-
-  let filtered = allApps.filter(app =>
-    app.name.toLowerCase().includes(searchText)
-  );
-
-  if(selectedCategory !== "all"){
-    filtered = filtered.filter(app =>
-      app.category === selectedCategory
-    );
-  }
-
-  displayApps(filtered);
-};
-
-document.getElementById("searchInput").addEventListener("input", filterApps);
-
-// 🎤 Voice Search
-window.startVoiceSearch = function(){
-  const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = "en-US";
-  recognition.start();
-
-  recognition.onresult = function(event){
-    const voiceText = event.results[0][0].transcript;
-    document.getElementById("searchInput").value = voiceText;
-    filterApps();
-  };
 };
 
 loadApps();
