@@ -1,73 +1,104 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Bharat App Store - Premium</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bharat App Store</title>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+
+  <style>
+    body{
+      font-family: Arial;
+      text-align:center;
+      background:#f5f5f5;
+      padding-top:50px;
+    }
+    .card{
+      background:white;
+      padding:30px;
+      border-radius:10px;
+      width:300px;
+      margin:auto;
+      box-shadow:0 0 10px rgba(0,0,0,0.1);
+    }
+    button{
+      background:#3399cc;
+      color:white;
+      border:none;
+      padding:10px 20px;
+      font-size:16px;
+      border-radius:5px;
+      cursor:pointer;
+    }
+    #installBtn{
+      display:none;
+      margin-top:15px;
+      background:green;
+    }
+  </style>
 </head>
+<body>
 
-<body style="text-align:center; font-family:Arial; margin-top:80px;">
+<div class="card">
+  <h2>Premium App</h2>
+  <p>Price: ₹10</p>
+  <button onclick="payNow()">Pay & Unlock</button>
+  <button id="installBtn">Install Now</button>
+</div>
 
-<h2>Premium App Purchase</h2>
-
-<button id="payBtn" style="
-padding:12px 25px;
-background:green;
-color:white;
-border:none;
-border-radius:8px;
-font-size:16px;
-cursor:pointer;">
-Pay ₹500
-</button>
-
-<!-- Razorpay -->
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-
-<!-- Firebase + Payment Logic -->
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+// 🔥 PASTE YOUR FIREBASE CONFIG HERE
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "YOUR_FIREBASE_API_KEY",
-  authDomain: "bharat-app-store-8a633.firebaseapp.com",
-  projectId: "bharat-app-store-8a633"
+  authDomain: "YOUR_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_BUCKET",
+  messagingSenderId: "YOUR_ID",
+  appId: "YOUR_APP_ID"
 };
 
 const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
 const db = getFirestore(app);
 
-document.getElementById("payBtn").onclick = function () {
+window.payNow = function () {
 
   var options = {
-    key: "rzp_test_SHHD34IXs9hUPc",   // 👈 yaha apni TEST KEY ID daalo
-    amount: 50000,
-    currency: "INR",
-    name: "Bharat App Store",
-    description: "Premium Purchase",
-    handler: async function (response) {
+    "key": "rzp_test_SHHD34IXs9hUPc",
+    "amount": "1000", // 10 rupees
+    "currency": "INR",
+    "name": "Bharat App Store",
+    "description": "Premium App Unlock",
+    "handler": async function (response){
 
-      const user = auth.currentUser;
+      alert("Payment Successful!");
 
-      if (!user) {
-        alert("Please login first");
-        return;
-      }
-
-      await setDoc(doc(db, "users", user.uid, "purchases", "PremiumApp"), {
-        name: "PremiumApp",
+      // 🔥 Save in Firebase
+      await addDoc(collection(db, "payments"), {
+        paymentId: response.razorpay_payment_id,
+        amount: 10,
         date: new Date()
       });
 
-      alert("Payment Successful & Saved 🔥");
+      // 🔥 Unlock Install
+      document.getElementById("installBtn").style.display = "inline-block";
+    },
+    "prefill": {
+      "name": "Test User",
+      "email": "test@example.com"
+    },
+    "theme": {
+      "color": "#3399cc"
     }
   };
 
-  var rzp = new Razorpay(options);
-  rzp.open();
+  var rzp1 = new Razorpay(options);
+  rzp1.open();
 };
 
 </script>
