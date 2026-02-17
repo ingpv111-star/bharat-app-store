@@ -4,24 +4,20 @@
   <title>Bharat App Store</title>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
-
   <style>
     body{
       font-family: Arial;
       text-align:center;
       background:#f5f5f5;
-      padding-top:50px;
+      padding-top:80px;
     }
     .card{
       background:white;
       padding:30px;
       border-radius:10px;
-      width:300px;
+      width:320px;
       margin:auto;
-      box-shadow:0 0 10px rgba(0,0,0,0.1);
+      box-shadow:0 0 15px rgba(0,0,0,0.1);
     }
     button{
       background:#3399cc;
@@ -31,10 +27,10 @@
       font-size:16px;
       border-radius:5px;
       cursor:pointer;
+      margin-top:10px;
     }
     #installBtn{
       display:none;
-      margin-top:15px;
       background:green;
     }
   </style>
@@ -44,49 +40,35 @@
 <div class="card">
   <h2>Premium App</h2>
   <p>Price: ₹10</p>
+
   <button onclick="payNow()">Pay & Unlock</button>
-  <button id="installBtn">Install Now</button>
+
+  <button id="installBtn" onclick="installApp()">
+    Install Now
+  </button>
 </div>
 
-<script type="module">
+<script>
 
-// 🔥 PASTE YOUR FIREBASE CONFIG HERE
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+// 🔥 CHANGE THIS
+var RAZORPAY_KEY = "rzp_test_SHHD34IXs9hUPc";
 
-const firebaseConfig = {
-  apiKey: "YOUR_FIREBASE_API_KEY",
-  authDomain: "YOUR_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_BUCKET",
-  messagingSenderId: "YOUR_ID",
-  appId: "YOUR_APP_ID"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-window.payNow = function () {
+// Payment Function
+function payNow(){
 
   var options = {
-    "key": "rzp_test_SHHD34IXs9hUPc",
-    "amount": "1000", // 10 rupees
+    "key": RAZORPAY_KEY,
+    "amount": "1000", // ₹10
     "currency": "INR",
     "name": "Bharat App Store",
     "description": "Premium App Unlock",
-    "handler": async function (response){
+    "handler": function (response){
 
-      alert("Payment Successful!");
+      // Save unlock status
+      localStorage.setItem("premiumUnlocked", "yes");
 
-      // 🔥 Save in Firebase
-      await addDoc(collection(db, "payments"), {
-        paymentId: response.razorpay_payment_id,
-        amount: 10,
-        date: new Date()
-      });
-
-      // 🔥 Unlock Install
-      document.getElementById("installBtn").style.display = "inline-block";
+      // Redirect to success page
+      window.location.href = "success.html";
     },
     "prefill": {
       "name": "Test User",
@@ -99,7 +81,19 @@ window.payNow = function () {
 
   var rzp1 = new Razorpay(options);
   rzp1.open();
-};
+}
+
+// Permanent Unlock Check
+window.onload = function(){
+  if(localStorage.getItem("premiumUnlocked") === "yes"){
+    document.getElementById("installBtn").style.display = "inline-block";
+  }
+}
+
+// Install Action
+function installApp(){
+  alert("App Installed Successfully 🔥");
+}
 
 </script>
 
