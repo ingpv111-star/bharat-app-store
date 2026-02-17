@@ -27,19 +27,22 @@ button{
 .logout-btn{ background:red; color:white; }
 .install-btn{ background:#00ff99; }
 
+.section{
+  margin-top:30px;
+}
+
 .apps{
   display:flex;
   flex-wrap:wrap;
   justify-content:center;
-  margin-top:20px;
 }
 
 .card{
   background:rgba(255,255,255,0.1);
-  padding:20px;
-  margin:15px;
-  border-radius:15px;
-  width:220px;
+  padding:15px;
+  margin:10px;
+  border-radius:12px;
+  width:200px;
 }
 </style>
 </head>
@@ -53,13 +56,28 @@ button{
 
 <p id="userInfo"></p>
 
-<div class="apps" id="apps"></div>
+<div class="section">
+  <h2>All Apps</h2>
+  <div class="apps" id="apps"></div>
+</div>
+
+<div class="section">
+  <h2>📦 My Apps</h2>
+  <div class="apps" id="myApps"></div>
+</div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-import { getFirestore, collection, getDocs, updateDoc, doc, increment } 
-from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { 
+  getFirestore, 
+  collection, 
+  getDocs, 
+  updateDoc, 
+  doc, 
+  increment,
+  setDoc
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 import { 
   getAuth, 
@@ -70,7 +88,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyChGwSmE4D-ZmvoaBfAQJVzye4WBdbg4bc",
+  apiKey: "YOUR_API_KEY",
   authDomain: "bharat-app-store-8a633.firebaseapp.com",
   projectId: "bharat-app-store-8a633",
   storageBucket: "bharat-app-store-8a633.firebasestorage.app",
@@ -84,8 +102,7 @@ const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
 
 const container = document.getElementById("apps");
-const authSection = document.getElementById("authSection");
-const userInfo = document.getElementById("userInfo");
+const myAppsContainer = document.getElementById("myApps");
 
 let currentUser = null;
 
@@ -100,12 +117,16 @@ window.logout = async function(){
 onAuthStateChanged(auth, (user)=>{
   if(user){
     currentUser = user;
-    userInfo.innerHTML = `👤 ${user.displayName}`;
-    authSection.innerHTML = `<button class="logout-btn" onclick="logout()">Logout</button>`;
+    document.getElementById("userInfo").innerHTML = `👤 ${user.displayName}`;
+    document.getElementById("authSection").innerHTML =
+      `<button class="logout-btn" onclick="logout()">Logout</button>`;
+    loadMyApps();
   } else {
     currentUser = null;
-    userInfo.innerHTML = "";
-    authSection.innerHTML = `<button class="login-btn" onclick="login()">Login with Google</button>`;
+    document.getElementById("userInfo").innerHTML = "";
+    document.getElementById("authSection").innerHTML =
+      `<button class="login-btn" onclick="login()">Login with Google</button>`;
+    myAppsContainer.innerHTML="";
   }
 });
 
@@ -116,29 +137,52 @@ async function loadApps(){
     const data = docSnap.data();
     container.innerHTML += `
       <div class="card">
-        <img src="${data.image}" width="80">
+        <img src="${data.image}" width="70">
         <h3>${data.name}</h3>
         <p>${data.developer}</p>
         <p>Installs: ${data.installs || 0}</p>
-        <button class="install-btn" onclick="installApp('${docSnap.id}')">Install</button>
+        <button class="install-btn" onclick="installApp('${docSnap.id}','${data.name}','${data.image}')">Install</button>
       </div>
     `;
   });
 }
 
-window.installApp = async function(id){
+window.installApp = async function(id,name,image){
   if(!currentUser){
-    alert("Please login first!");
+    alert("Login required!");
     return;
   }
 
   const ref = doc(db,"apps",id);
-  await updateDoc(ref,{
-    installs: increment(1)
+  await updateDoc(ref,{ installs: increment(1) });
+
+  const userInstallRef = doc(db,"users",currentUser.uid,"installs",id);
+  await setDoc(userInstallRef,{
+    name:name,
+    image:image,
+    installedAt:new Date()
   });
 
+  loadMyApps();
   loadApps();
 };
+
+async function loadMyApps(){
+  if(!currentUser) return;
+
+  myAppsContainer.innerHTML="";
+  const snapshot = await getDocs(collection(db,"users",currentUser.uid,"installs"));
+
+  snapshot.forEach((docSnap)=>{
+    const data = docSnap.data();
+    myAppsContainer.innerHTML += `
+      <div class="card">
+        <img src="${data.image}" width="60">
+        <h3>${data.name}</h3>
+      </div>
+    `;
+  });
+}
 
 loadApps();
 
