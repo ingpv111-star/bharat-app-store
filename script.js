@@ -1,49 +1,62 @@
 const apps = [
-  { name: "Chat AI", category: "AI Tool" },
-  { name: "Photo Editor Pro", category: "Editing" },
-  { name: "Game Zone", category: "Games" },
-  { name: "Learning Hub", category: "Education" }
+  {
+    name: "Chat AI",
+    developer: "Bharat Tech",
+    category: "AI Tool",
+    rating: "4.8 ⭐",
+    image: "https://cdn-icons-png.flaticon.com/512/4712/4712109.png",
+    boosted: true
+  },
+  {
+    name: "Game Zone",
+    developer: "Fun Studio",
+    category: "Games",
+    rating: "4.5 ⭐",
+    image: "https://cdn-icons-png.flaticon.com/512/833/833472.png",
+    boosted: false
+  },
+  {
+    name: "Photo Editor Pro",
+    developer: "EditX",
+    category: "Editing",
+    rating: "4.6 ⭐",
+    image: "https://cdn-icons-png.flaticon.com/512/2919/2919600.png",
+    boosted: false
+  }
 ];
 
-function loadApps() {
+function loadApps(list = apps) {
   const container = document.getElementById("appsContainer");
   container.innerHTML = "";
 
-  apps.forEach(app => {
+  list.forEach(app => {
     const div = document.createElement("div");
-    div.className = "app-card";
+    div.className = "card";
+
     div.innerHTML = `
+      ${app.boosted ? '<span class="badge">🔥 Boosted</span>' : ""}
+      <img src="${app.image}" class="app-img">
       <h3>${app.name}</h3>
+      <p>${app.developer}</p>
       <p>${app.category}</p>
-      <button onclick="boostApp('${app.name}')">Boost</button>
+      <p>${app.rating}</p>
+      <button onclick="installApp('${app.name}')">Install</button>
     `;
+
     container.appendChild(div);
   });
 }
 
 function searchApps() {
-  const searchValue = document.getElementById("searchInput").value.toLowerCase();
-  const container = document.getElementById("appsContainer");
-  container.innerHTML = "";
-
+  const value = document.getElementById("searchInput").value.toLowerCase();
   const filtered = apps.filter(app =>
-    app.name.toLowerCase().includes(searchValue)
+    app.name.toLowerCase().includes(value)
   );
-
-  filtered.forEach(app => {
-    const div = document.createElement("div");
-    div.className = "app-card";
-    div.innerHTML = `
-      <h3>${app.name}</h3>
-      <p>${app.category}</p>
-      <button onclick="boostApp('${app.name}')">Boost</button>
-    `;
-    container.appendChild(div);
-  });
+  loadApps(filtered);
 }
 
-function boostApp(name) {
-  alert("🔥 " + name + " Boosted Successfully!");
+function installApp(name) {
+  alert("✅ " + name + " Installed Successfully!");
 }
 
 loadApps();
