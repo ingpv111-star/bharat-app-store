@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Test Payment</title>
+  <title>Bharat App Store - Premium</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="text-align:center; font-family:Arial; margin-top:100px;">
 
-<h2>Razorpay Test Payment</h2>
+<body style="text-align:center; font-family:Arial; margin-top:80px;">
+
+<h2>Premium App Purchase</h2>
 
 <button id="payBtn" style="
 padding:12px 25px;
@@ -19,26 +20,56 @@ cursor:pointer;">
 Pay ₹500
 </button>
 
+<!-- Razorpay -->
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
-<script>
+<!-- Firebase + Payment Logic -->
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "YOUR_FIREBASE_API_KEY",
+  authDomain: "bharat-app-store-8a633.firebaseapp.com",
+  projectId: "bharat-app-store-8a633"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
 document.getElementById("payBtn").onclick = function () {
 
   var options = {
-    key: "rzp_test_SHHD34IXs9hUPc",  // 👈 Yaha apni TEST Key ID paste karo
+    key: "rzp_test_SHHD34IXs9hUPc",   // 👈 yaha apni TEST KEY ID daalo
     amount: 50000,
     currency: "INR",
     name: "Bharat App Store",
-    description: "Test Transaction",
-    handler: function (response) {
-      alert("Payment Successful ✅");
+    description: "Premium Purchase",
+    handler: async function (response) {
+
+      const user = auth.currentUser;
+
+      if (!user) {
+        alert("Please login first");
+        return;
+      }
+
+      await setDoc(doc(db, "users", user.uid, "purchases", "PremiumApp"), {
+        name: "PremiumApp",
+        date: new Date()
+      });
+
+      alert("Payment Successful & Saved 🔥");
     }
   };
 
   var rzp = new Razorpay(options);
   rzp.open();
-
 };
+
 </script>
 
 </body>
