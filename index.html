@@ -3,17 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bharat AI App Store</title>
+<title>Bharat Super App Hub</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<header>
-  <h1>🇮🇳 Bharat App Store</h1>
-  <input type="text" id="searchInput" placeholder="Search apps..." onkeyup="searchApps()">
+<header class="hero">
+  <h1>🌌 Bharat Super App Hub</h1>
+  <p>India's Next Generation App Marketplace</p>
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Search apps..." onkeyup="searchApps()">
+  </div>
 </header>
 
-<div class="container" id="appsContainer"></div>
+<section class="categories">
+  <button onclick="filterCategory('All')">All</button>
+  <button onclick="filterCategory('AI')">AI</button>
+  <button onclick="filterCategory('Games')">Games</button>
+  <button onclick="filterCategory('Tools')">Tools</button>
+  <button onclick="filterCategory('Education')">Education</button>
+</section>
+
+<section id="appsContainer" class="apps-grid"></section>
+
+<button class="floating-btn" onclick="toggleForm()">+</button>
+
+<div id="uploadForm" class="form-popup">
+  <h3>Upload Your App</h3>
+  <input type="text" id="appName" placeholder="App Name">
+  <input type="text" id="appDev" placeholder="Developer Name">
+  <input type="text" id="appCategory" placeholder="Category">
+  <input type="text" id="appImage" placeholder="Image URL">
+  <button onclick="addApp()">Submit</button>
+</div>
 
 <script src="script.js"></script>
 </body>
