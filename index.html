@@ -8,14 +8,12 @@
 </head>
 <body>
 
-<h1>🇮🇳 Bharat AI App Store</h1>
+<header>
+  <h1>🇮🇳 Bharat App Store</h1>
+  <input type="text" id="searchInput" placeholder="Search apps..." onkeyup="searchApps()">
+</header>
 
-<div class="search-box">
-  <input type="text" id="searchInput" placeholder="Search apps...">
-  <button onclick="searchApps()">Search</button>
-</div>
-
-<div id="appsContainer"></div>
+<div class="container" id="appsContainer"></div>
 
 <script src="script.js"></script>
 </body>
