@@ -1,9 +1,8 @@
-const apps = [
+let apps = [
   {
     name: "Chat AI",
     developer: "Bharat Tech",
-    category: "AI Tool",
-    rating: "4.8 ⭐",
+    category: "AI",
     image: "https://cdn-icons-png.flaticon.com/512/4712/4712109.png",
     boosted: true
   },
@@ -11,16 +10,7 @@ const apps = [
     name: "Game Zone",
     developer: "Fun Studio",
     category: "Games",
-    rating: "4.5 ⭐",
     image: "https://cdn-icons-png.flaticon.com/512/833/833472.png",
-    boosted: false
-  },
-  {
-    name: "Photo Editor Pro",
-    developer: "EditX",
-    category: "Editing",
-    rating: "4.6 ⭐",
-    image: "https://cdn-icons-png.flaticon.com/512/2919/2919600.png",
     boosted: false
   }
 ];
@@ -34,12 +24,11 @@ function loadApps(list = apps) {
     div.className = "card";
 
     div.innerHTML = `
-      ${app.boosted ? '<span class="badge">🔥 Boosted</span>' : ""}
-      <img src="${app.image}" class="app-img">
+      ${app.boosted ? '<span class="badge">⭐ Featured</span>' : ""}
+      <img src="${app.image}">
       <h3>${app.name}</h3>
       <p>${app.developer}</p>
       <p>${app.category}</p>
-      <p>${app.rating}</p>
       <button onclick="installApp('${app.name}')">Install</button>
     `;
 
@@ -55,8 +44,45 @@ function searchApps() {
   loadApps(filtered);
 }
 
+function filterCategory(category) {
+  if(category === "All") {
+    loadApps();
+  } else {
+    const filtered = apps.filter(app => app.category === category);
+    loadApps(filtered);
+  }
+}
+
 function installApp(name) {
-  alert("✅ " + name + " Installed Successfully!");
+  alert("🚀 " + name + " Installed Successfully!");
+}
+
+function toggleForm() {
+  const form = document.getElementById("uploadForm");
+  form.style.display = form.style.display === "block" ? "none" : "block";
+}
+
+function addApp() {
+  const name = document.getElementById("appName").value;
+  const dev = document.getElementById("appDev").value;
+  const cat = document.getElementById("appCategory").value;
+  const img = document.getElementById("appImage").value;
+
+  if(!name || !dev || !cat || !img) {
+    alert("Please fill all fields!");
+    return;
+  }
+
+  apps.push({
+    name,
+    developer: dev,
+    category: cat,
+    image: img,
+    boosted: false
+  });
+
+  loadApps();
+  toggleForm();
 }
 
 loadApps();
