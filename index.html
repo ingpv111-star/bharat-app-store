@@ -1,36 +1,98 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bharat Super App Hub</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bharat Super App Hub</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:linear-gradient(135deg,#141e30,#243b55);
+  color:white;
+  text-align:center;
+}
+
+h1{margin-top:30px;}
+
+input{
+  padding:10px;
+  margin:8px;
+  border-radius:8px;
+  border:none;
+}
+
+button{
+  padding:8px 15px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  background:#00c6ff;
+  font-weight:bold;
+}
+
+.apps{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  margin-top:30px;
+}
+
+.card{
+  background:rgba(255,255,255,0.1);
+  padding:20px;
+  margin:15px;
+  border-radius:15px;
+  width:220px;
+  backdrop-filter:blur(10px);
+  transition:0.3s;
+}
+
+.card:hover{
+  transform:scale(1.05);
+}
+
+img{
+  width:80px;
+}
+
+.install-btn{
+  background:#00ff99;
+  margin-top:8px;
+}
+
+.rating{
+  margin-top:8px;
+}
+</style>
 </head>
 <body>
 
-<header class="hero">
-  <h1>🌌 Bharat Super App Hub</h1>
-  <p>India's Next Generation App Marketplace</p>
-</header>
+<h1>🚀 Bharat Super App Hub</h1>
 
-<section class="upload">
-  <h2>Add New App</h2>
-  <input type="text" id="appName" placeholder="App Name">
-  <input type="text" id="appDev" placeholder="Developer Name">
-  <input type="text" id="appCategory" placeholder="Category">
-  <input type="text" id="appImage" placeholder="Image URL">
-  <button onclick="addApp()">Upload App</button>
-</section>
+<h2>Add App</h2>
+<input id="name" placeholder="App Name">
+<input id="dev" placeholder="Developer">
+<input id="cat" placeholder="Category">
+<input id="img" placeholder="Image URL">
+<br>
+<button onclick="addApp()">Upload</button>
 
-<section>
-  <h2>All Apps</h2>
-  <div id="appsContainer" class="apps-grid"></div>
-</section>
+<div class="apps" id="apps"></div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import { 
+  getFirestore, 
+  collection, 
+  addDoc, 
+  getDocs, 
+  updateDoc,
+  doc,
+  increment
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyChGwSmE4D-ZmvoaBfAQJVzye4WBdbg4bc",
@@ -44,44 +106,64 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const container = document.getElementById("apps");
 
-const container = document.getElementById("appsContainer");
+async function loadApps(){
+  container.innerHTML="";
+  const snapshot = await getDocs(collection(db,"apps"));
+  
+  snapshot.forEach((docSnap)=>{
+    const data = docSnap.data();
+    const id = docSnap.id;
 
-async function loadApps() {
-  container.innerHTML = "";
-  const querySnapshot = await getDocs(collection(db, "apps"));
-  querySnapshot.forEach((doc) => {
-    const data = doc.data();
     container.innerHTML += `
       <div class="card">
-        <img src="${data.image}" width="80">
+        <img src="${data.image}">
         <h3>${data.name}</h3>
         <p>${data.developer}</p>
         <p>${data.category}</p>
+        <p>Installs: ${data.installs || 0}</p>
+        <button class="install-btn" onclick="installApp('${id}')">Install</button>
+        <div class="rating">
+          ⭐ ${data.rating || 5}
+          <button onclick="rateApp('${id}',5)">5⭐</button>
+        </div>
       </div>
     `;
   });
 }
 
-window.addApp = async function() {
-  const name = document.getElementById("appName").value;
-  const dev = document.getElementById("appDev").value;
-  const cat = document.getElementById("appCategory").value;
-  const img = document.getElementById("appImage").value;
+window.addApp = async function(){
+  const name = document.getElementById("name").value;
+  const dev = document.getElementById("dev").value;
+  const cat = document.getElementById("cat").value;
+  const img = document.getElementById("img").value;
 
-  if(!name || !dev || !cat || !img){
-    alert("Fill all fields");
-    return;
-  }
-
-  await addDoc(collection(db, "apps"), {
-    name: name,
-    developer: dev,
-    category: cat,
-    image: img
+  await addDoc(collection(db,"apps"),{
+    name,
+    developer:dev,
+    category:cat,
+    image:img,
+    installs:0,
+    rating:5
   });
 
-  alert("App Added Successfully 🚀");
+  loadApps();
+};
+
+window.installApp = async function(id){
+  const ref = doc(db,"apps",id);
+  await updateDoc(ref,{
+    installs: increment(1)
+  });
+  loadApps();
+};
+
+window.rateApp = async function(id,value){
+  const ref = doc(db,"apps",id);
+  await updateDoc(ref,{
+    rating:value
+  });
   loadApps();
 };
 
