@@ -2,99 +2,124 @@
 <html>
 <head>
   <title>Bharat App Store</title>
-  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
     body{
-      font-family: Arial;
-      text-align:center;
-      background:#f5f5f5;
-      padding-top:80px;
-    }
-    .card{
-      background:white;
-      padding:30px;
-      border-radius:10px;
-      width:320px;
-      margin:auto;
-      box-shadow:0 0 15px rgba(0,0,0,0.1);
-    }
-    button{
-      background:#3399cc;
+      margin:0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
       color:white;
-      border:none;
-      padding:10px 20px;
-      font-size:16px;
-      border-radius:5px;
-      cursor:pointer;
-      margin-top:10px;
+      text-align:center;
     }
-    #installBtn{
-      display:none;
-      background:green;
+
+    .header{
+      padding:18px;
+      font-size:22px;
+      font-weight:bold;
+      background:rgba(0,0,0,0.4);
+    }
+
+    .search-box{
+      margin:15px;
+    }
+
+    .search-box input{
+      width:90%;
+      padding:12px;
+      border-radius:20px;
+      border:none;
+      outline:none;
+    }
+
+    .apps-container{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      padding-bottom:40px;
+    }
+
+    .card{
+      background:rgba(255,255,255,0.12);
+      margin:12px 0;
+      padding:20px;
+      border-radius:20px;
+      width:90%;
+      max-width:400px;
+      box-shadow:0 8px 20px rgba(0,0,0,0.3);
+      text-align:left;
+    }
+
+    .card h3{
+      margin-top:0;
+    }
+
+    .install-btn{
+      display:inline-block;
+      margin-top:10px;
+      padding:10px 20px;
+      border-radius:20px;
+      background:#00ff88;
+      color:black;
+      font-weight:bold;
+      text-decoration:none;
+    }
+
+    .list-btn{
+      margin:20px;
+      padding:12px 25px;
+      border:none;
+      border-radius:25px;
+      background:#00c6ff;
+      color:white;
+      font-weight:bold;
     }
   </style>
 </head>
+
 <body>
 
-<div class="card">
-  <h2>Premium App</h2>
-  <p>Price: ₹10</p>
-
-  <button onclick="payNow()">Pay & Unlock</button>
-
-  <button id="installBtn" onclick="installApp()">
-    Install Now
-  </button>
+<div class="header">
+  🇮🇳 Bharat App Store
 </div>
 
+<div class="search-box">
+  <input type="text" id="search" placeholder="Search apps..." onkeyup="searchApp()">
+</div>
+
+<div class="apps-container">
+
+  <div class="card">
+    <h3>Sample Learning App</h3>
+    <p>This app is completely FREE.</p>
+    <a href="#" class="install-btn">Install</a>
+  </div>
+
+  <div class="card">
+    <h3>Sample Business App</h3>
+    <p>This app is completely FREE.</p>
+    <a href="#" class="install-btn">Install</a>
+  </div>
+
+</div>
+
+<button class="list-btn">List Your App</button>
+
 <script>
+function searchApp(){
+  var input = document.getElementById("search").value.toLowerCase();
+  var cards = document.getElementsByClassName("card");
 
-// 🔥 CHANGE THIS
-var RAZORPAY_KEY = "rzp_test_SHHD34IXs9hUPc";
+  for(var i=0;i<cards.length;i++){
+    var title = cards[i].getElementsByTagName("h3")[0].innerText.toLowerCase();
 
-// Payment Function
-function payNow(){
-
-  var options = {
-    "key": RAZORPAY_KEY,
-    "amount": "1000", // ₹10
-    "currency": "INR",
-    "name": "Bharat App Store",
-    "description": "Premium App Unlock",
-    "handler": function (response){
-
-      // Save unlock status
-      localStorage.setItem("premiumUnlocked", "yes");
-
-      // Redirect to success page
-      window.location.href = "success.html";
-    },
-    "prefill": {
-      "name": "Test User",
-      "email": "test@example.com"
-    },
-    "theme": {
-      "color": "#3399cc"
+    if(title.includes(input)){
+      cards[i].style.display = "block";
+    } else {
+      cards[i].style.display = "none";
     }
-  };
-
-  var rzp1 = new Razorpay(options);
-  rzp1.open();
-}
-
-// Permanent Unlock Check
-window.onload = function(){
-  if(localStorage.getItem("premiumUnlocked") === "yes"){
-    document.getElementById("installBtn").style.display = "inline-block";
   }
 }
-
-// Install Action
-function installApp(){
-  alert("App Installed Successfully 🔥");
-}
-
 </script>
 
 </body>
