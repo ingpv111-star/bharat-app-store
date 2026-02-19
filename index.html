@@ -7,72 +7,111 @@
   <style>
     body{
       margin:0;
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
       color:white;
-      text-align:center;
     }
 
     .header{
       padding:18px;
+      text-align:center;
       font-size:22px;
       font-weight:bold;
       background:rgba(0,0,0,0.4);
     }
 
+    .hero{
+      text-align:center;
+      padding:15px;
+      font-size:14px;
+      opacity:0.9;
+    }
+
     .search-box{
-      margin:15px;
+      text-align:center;
+      margin:10px 15px;
     }
 
     .search-box input{
-      width:90%;
+      width:100%;
       padding:12px;
-      border-radius:20px;
+      border-radius:25px;
       border:none;
       outline:none;
     }
 
+    .category{
+      text-align:center;
+      font-size:13px;
+      opacity:0.8;
+      margin-bottom:10px;
+    }
+
     .apps-container{
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      padding-bottom:40px;
+      padding:10px;
     }
 
     .card{
       background:rgba(255,255,255,0.12);
       margin:12px 0;
-      padding:20px;
-      border-radius:20px;
-      width:90%;
-      max-width:400px;
+      padding:12px;
+      border-radius:18px;
       box-shadow:0 8px 20px rgba(0,0,0,0.3);
-      text-align:left;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
     }
 
-    .card h3{
-      margin-top:0;
+    .app-left{
+      display:flex;
+      align-items:center;
+    }
+
+    .app-left img{
+      width:55px;
+      height:55px;
+      border-radius:12px;
+      margin-right:10px;
+    }
+
+    .app-text h3{
+      margin:0;
+      font-size:15px;
+    }
+
+    .app-text p{
+      margin:2px 0;
+      font-size:12px;
+      opacity:0.8;
     }
 
     .install-btn{
-      display:inline-block;
-      margin-top:10px;
-      padding:10px 20px;
+      padding:7px 14px;
       border-radius:20px;
       background:#00ff88;
       color:black;
       font-weight:bold;
       text-decoration:none;
+      font-size:12px;
     }
 
     .list-btn{
-      margin:20px;
+      display:block;
+      margin:20px auto;
       padding:12px 25px;
       border:none;
       border-radius:25px;
       background:#00c6ff;
       color:white;
       font-weight:bold;
+    }
+
+    .footer{
+      text-align:center;
+      padding:15px;
+      font-size:12px;
+      background:rgba(0,0,0,0.3);
+      margin-top:20px;
     }
   </style>
 </head>
@@ -83,27 +122,68 @@
   🇮🇳 Bharat App Store
 </div>
 
+<div class="hero">
+  India’s Free & Open App Platform 🇮🇳 <br>
+  Discover • Install • Grow
+</div>
+
 <div class="search-box">
   <input type="text" id="search" placeholder="Search apps..." onkeyup="searchApp()">
 </div>
 
+<div class="category">
+  Categories: Education | Business | Tools | Startup
+</div>
+
 <div class="apps-container">
 
+  <!-- APP 1 -->
   <div class="card">
-    <h3>Sample Learning App</h3>
-    <p>This app is completely FREE.</p>
-    <a href="#" class="install-btn">Install</a>
+    <div class="app-left">
+      <img src="https://via.placeholder.com/60" alt="App Icon">
+      <div class="app-text">
+        <h3>Learning App</h3>
+        <p>Education • FREE</p>
+      </div>
+    </div>
+    <a href="apps/learning.apk" download class="install-btn">Install</a>
   </div>
 
+  <!-- APP 2 -->
   <div class="card">
-    <h3>Sample Business App</h3>
-    <p>This app is completely FREE.</p>
-    <a href="#" class="install-btn">Install</a>
+    <div class="app-left">
+      <img src="https://via.placeholder.com/60" alt="App Icon">
+      <div class="app-text">
+        <h3>Business Tools</h3>
+        <p>Business • FREE</p>
+      </div>
+    </div>
+    <a href="apps/business.apk" download class="install-btn">Install</a>
+  </div>
+
+  <!-- APP 3 -->
+  <div class="card">
+    <div class="app-left">
+      <img src="https://via.placeholder.com/60" alt="App Icon">
+      <div class="app-text">
+        <h3>Startup Helper</h3>
+        <p>Startup • FREE</p>
+      </div>
+    </div>
+    <a href="apps/startup.apk" download class="install-btn">Install</a>
   </div>
 
 </div>
 
-<button class="list-btn">List Your App</button>
+<a href="https://wa.me/919XXXXXXXXX">
+  <button class="list-btn">List Your App</button>
+</a>
+
+<div class="footer">
+  © 2026 Bharat App Store <br>
+  Built for Indian Developers 🇮🇳 <br>
+  Contact: bharatappstore@email.com
+</div>
 
 <script>
 function searchApp(){
@@ -114,7 +194,7 @@ function searchApp(){
     var title = cards[i].getElementsByTagName("h3")[0].innerText.toLowerCase();
 
     if(title.includes(input)){
-      cards[i].style.display = "block";
+      cards[i].style.display = "flex";
     } else {
       cards[i].style.display = "none";
     }
